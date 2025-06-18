@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Millennial Quest: 8-Bit Job Market Adventure</title>
+    <!-- Tailwind CSS CDN for basic styling outside the canvas -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        body {
+            background-color: #1a202c; /* Dark background for 8-bit feel */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Press Start 2P', cursive; /* Pixelated font */
+            color: #e2e8f0; /* Light text color */
+            overflow: hidden; /* Prevent scrolling */
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(145deg, #2d3748, #1a202c); /* Subtle dark gradient */
+            padding: 25px; /* Slightly more padding */
+            border-radius: 12px; /* Slightly more rounded */
+            box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.7), /* More pronounced 8-bit shadow */
+                        -4px -4px 10px rgba(71, 85, 105, 0.2); /* Subtle inner light */
+            max-width: 90vw; /* Responsive width */
+            width: 500px; /* Max width */
+            box-sizing: border-box;
+            border: 2px solid #4a5568; /* Subtle container border */
+            position: relative; /* For screen shake effect */
+        }
+
+        canvas {
+            background-color: #0f172a; /* Dark blue-ish background for game area */
+            border: 4px solid #63b3ed; /* Blue border */
+            border-radius: 5px;
+            display: block;
+            touch-action: none; /* Prevent default touch actions like scrolling */
+            image-rendering: pixelated; /* Ensure crisp pixels */
+            width: 100%; /* Make canvas responsive */
+            max-width: 400px; /* Limit max width */
+            height: auto; /* Maintain aspect ratio */
+        }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+            color: #a0aec0;
+        }
+
+        .game-message {
+            margin-top: 15px;
+            font-size: 1.1em;
+            color: #f6ad55; /* Orange for messages */
+            text-align: center;
+            min-height: 1.5em; /* Reserve space for message */
+            text-shadow: 1px 1px 0px rgba(0,0,0,0.5); /* Subtle text shadow */
+        }
+
+        .game-instructions {
+            background-color: #4a5568;
+            border: 2px solid #63b3ed;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            max-width: 400px;
+            width: 100%;
+            font-size: 0.8em;
+            line-height: 1.4;
+            color: #cbd5e0;
+            box-shadow: 4px 4px 0px #2d3748; /* More prominent shadow */
+            text-align: left;
+            transition: opacity 0.5s ease-in-out; /* Smooth transition for hiding/showing */
+        }
+
+        .game-instructions p {
+            margin-bottom: 8px;
+        }
+
+        .game-instructions strong {
+            color: #f6ad55; /* Orange for emphasis */
+        }
+
+        .controls {
+            display: grid;
+            grid-template-areas:
+                ". up ."
+                "left . right"
+                ". down .";
+            gap: 15px; /* Increased gap for better touch targets */
+            margin-top: 25px; /* More spacing */
+            width: 100%;
+            max-width: 320px; /* Slightly wider controls */
+            justify-items: center;
+        }
+
+        .control-button {
+            background: linear-gradient(180deg, #4a5568, #2d3748); /* Subtle gradient for buttons */
+            color: #cbd5e0;
+            padding: 18px 25px; /* Larger buttons for touch */
+            border: 2px solid #a0aec0;
+            border-radius: 10px; /* More rounded */
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.9em; /* Slightly larger font */
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s, box-shadow 0.1s;
+            box-shadow: 4px 4px 0px #2d3748; /* Stronger 8-bit shadow */
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .control-button:hover {
+            background-color: #63b3ed; /* Light blue on hover */
+            color: #1a202c;
+            box-shadow: 6px 6px 0px #2d3748; /* Bigger shadow on hover */
+        }
+
+        .control-button:active {
+            transform: translateY(4px) translateX(4px); /* More pronounced press effect */
+            box-shadow: 0px 0px 0px #2d3748; /* Shadow disappears on press */
+        }
+
+        .control-up { grid-area: up; }
+        .control-left { grid-area: left; }
+        .control-right { grid-area: right; }
+        .control-down { grid-area: down; }
+
+        .restart-button {
+            background: linear-gradient(180deg, #e53e3e, #c53030); /* Gradient for restart button */
+            color: #ffffff;
+            padding: 18px 35px; /* Larger padding */
+            border: 2px solid #f56565;
+            border-radius: 10px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.1em; /* Slightly larger font */
+            cursor: pointer;
+            margin-top: 25px; /* More spacing */
+            transition: background-color 0.2s, transform 0.1s, box-shadow 0.1s;
+            box-shadow: 4px 4px 0px #9b2c2c; /* Stronger 8-bit shadow */
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .restart-button:hover {
+            background-color: #c53030;
+            box-shadow: 6px 6px 0px #9b2c2c; /* Bigger shadow on hover */
+        }
+
+        .restart-button:active {
+            transform: translateY(4px) translateX(4px); /* More pronounced press effect */
+            box-shadow: 0px 0px 0px #9b2c2c; /* Shadow disappears on press */
+        }
+
+        /* Responsive styling for smaller screens */
+        @media (max-width: 600px) {
+            .game-container {
+                padding: 15px;
+                border-radius: 8px;
+                box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.7);
+            }
+            .game-info {
+                font-size: 0.8em;
+                margin-bottom: 10px;
+            }
+            .game-message {
+                font-size: 0.9em;
+                margin-top: 10px;
+            }
+            .game-instructions {
+                padding: 10px;
+                margin-top: 15px;
+                font-size: 0.7em;
+            }
+            .control-button {
+                padding: 12px 18px;
+                font-size: 0.7em;
+            }
+            .restart-button {
+                padding: 12px 25px;
+                font-size: 0.9em;
+                margin-top: 15px;
+            }
+        }
+        /* Specific CSS for screen shake effect */
+        .shake {
+            animation: shake 0.2s cubic-bezier(.36,.07,.19,.97) both;
+            transform: translate3d(0, 0, 0);
+            backface-visibility: hidden;
+            perspective: 1000px;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+            50% { transform: translate3d(-4px, 0, 0); }
+        }
+
+        /* Game Over Flash */
+        .red-flash-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 0, 0, 0.3); /* Semi-transparent red */
+            z-index: 10;
+            pointer-events: none; /* Allow clicks to pass through */
+            animation: fadeOut 0.5s forwards;
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        /* Invincibility flash for player */
+        .invincible-flash {
+            animation: playerFlash 0.1s infinite alternate;
+        }
+
+        @keyframes playerFlash {
+            from { opacity: 1; }
+            to { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container" id="gameContainer">
+        <div class="game-info">
+            <div id="score">Job Readiness: 0</div>
+            <div id="high-score">Highest Progress: 0</div>
+        </div>
+        <canvas id="gameCanvas"></canvas>
+        <div id="gameMessage" class="game-message">Press arrow keys or use controls to start your quest!</div>
+
+        <!-- Game Instructions Section -->
+        <div id="gameInstructions" class="game-instructions">
+            <p>Welcome to **Millennial Quest**!</p>
+            <p>Navigate the job market as a millennial:</p>
+            <p>- You are the 🟦 <strong>Blue Graduate Cap</strong>.</p>
+            <p>- Eat 🟩 <strong>Motivation</strong> (Coffee Cup - +1 Readiness).</p>
+            <p>- Look out for 🟨 <strong>Job Opportunities</strong> (Gold Briefcase - +5 Readiness - they're rare!).</p>
+            <p>- Collect 🟢 <strong>Networking Coffee</strong> for temporary invincibility!</p>
+            <p>- Grab 🔵 <strong>Resume Boost</strong> to double your next Job Opportunity points!</p>
+            <p>- Avoid 🟥 <strong>Rejection Letters</strong> (Red 'X'), 🟪 <strong>Ghosting</strong> (Purple Ghost), and ⬜ <strong>AI Replacing Jobs</strong> (Silver Robot). Hitting them ends your quest!</p>
+            <p>Good luck!</p>
+        </div>
+
+        <button id="restartButton" class="restart-button hidden">Restart Quest</button>
+
+        <!-- Touch Controls for Mobile -->
+        <div class="controls">
+            <button class="control-button control-up" data-direction="up">UP</button>
+            <button class="control-button control-left" data-direction="left">LEFT</button>
+            <button class="control-button control-right" data-direction="right">RIGHT</button>
+            <button class="control-button control-down" data-direction="down">DOWN</button>
+        </div>
+    </div>
+
+    <script>
+        // Get the canvas element and its 2D rendering context
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gameContainer = document.getElementById('gameContainer'); // Get game container for shake effect
+
+        // Game parameters
+        const gridSize = 20; // Size of each cell in the game grid (e.g., 20x20 pixels)
+        let tileCountX = 20; // Number of tiles horizontally
+        let tileCountY = 20; // Number of tiles vertically
+        let intervalId; // To store the game loop interval
+        let gameSpeed = 150; // Initial game speed in milliseconds (lower = faster)
+        let jobReadiness = 0; // Renamed from score
+        let highestProgress = localStorage.getItem('millennialQuestHighScore') || 0; // Renamed from highScore
+        let isGameOver = false;
+        let isGameStarted = false; // To track if the game has started
+
+        // Snake (Millennial character) properties
+        let snake = [{ x: 10, y: 10 }]; // Initial position
+        let direction = { x: 0, y: 0 }; // Initial direction (not moving)
+        let changingDirection = false; // To prevent multiple direction changes per frame
+
+        // Game Items
+        let motivation = {}; // "Food" for motivation (coffee cup)
+        let jobOpportunity = {}; // Special "food" for job opportunities (gold briefcase)
+        let networkingCoffee = {}; // Power-up: temporary invincibility
+        let resumeBoost = {}; // Power-up: doubles next job opportunity points
+        let obstacles = []; // Array to hold "rejection", "ghosting", and "AI replacement" blocks
+
+        // Game State Flags and Timers for Power-ups/Events
+        let isInvincible = false;
+        let invincibilityTimeout;
+        let resumeBoostActive = false;
+        let resumeBoostTimeout;
+        let interviewEventActive = false;
+        let interviewTimeout;
+        let recessionWaveActive = false;
+        let recessionWaveTimeout;
+        let recessionWaveDirection = { x: 0, y: 0 }; // Direction for recession wave
+
+        // UI elements
+        const jobReadinessDisplay = document.getElementById('score');
+        const highestProgressDisplay = document.getElementById('high-score');
+        const gameMessage = document.getElementById('gameMessage');
+        const gameInstructions = document.getElementById('gameInstructions');
+        const restartButton = document.getElementById('restartButton');
+        const controlButtons = document.querySelectorAll('.control-button');
+
+        // --- Game Initialization and Resizing ---
+
+        /**
+         * Sets up the canvas dimensions based on its container, maintaining a square aspect ratio.
+         * Adjusts tile counts accordingly to ensure a consistent grid.
+         */
+        function setupCanvas() {
+            // Subtract padding of game-container from parent client width for canvas width
+            const containerWidth = gameContainer.clientWidth - (2 * 25); // 25px padding on each side
+            const size = Math.min(containerWidth, 400); // Max size 400px, or container width
+            canvas.width = size;
+            canvas.height = size;
+
+            // Recalculate tile counts based on new canvas size and grid size
+            tileCountX = Math.floor(canvas.width / gridSize);
+            tileCountY = Math.floor(canvas.height / gridSize);
+
+            // Ensure snake and items are within new bounds if the game is already running
+            if (isGameStarted) {
+                // Adjust snake head if it's out of bounds
+                snake[0].x = Math.min(snake[0].x, tileCountX - 1);
+                snake[0].y = Math.min(snake[0].y, tileCountY - 1);
+                // Re-position items
+                generateGameItems();
+            }
+
+            drawGame(); // Redraw the game after resizing
+        }
+
+        // Initialize canvas on load and on window resize
+        window.onload = () => {
+            setupCanvas();
+            updateHighestProgressDisplay(); // Ensure high score is displayed immediately
+            displayMessage("Press arrow keys or use controls to start your quest!");
+            gameInstructions.classList.remove('hidden'); // Ensure instructions are visible
+        };
+        window.addEventListener('resize', setupCanvas);
+
+        // --- Game Loop ---
+
+        /**
+         * Main game loop, updates game state and redraws every 'gameSpeed' milliseconds.
+         */
+        function gameLoop() {
+            if (isGameOver) {
+                clearInterval(intervalId); // Stop the game loop
+                return;
+            }
+
+            changingDirection = false; // Allow direction change for the next frame
+            moveSnake();
+            moveObstacles(); // Move obstacles if difficulty allows
+            drawGame();
+            checkSpecialEventTrigger(); // Check if a special event should trigger
+        }
+
+        /**
+         * Starts or restarts the game.
+         */
+        function startGame() {
+            if (intervalId) clearInterval(intervalId); // Clear any existing interval
+            jobReadiness = 0;
+            snake = [{ x: 10, y: 10 }];
+            direction = { x: 0, y: 0 }; // Reset direction
+            gameSpeed = 150; // Reset speed
+            obstacles = []; // Clear obstacles
+            isInvincible = false;
+            resumeBoostActive = false;
+            interviewEventActive = false;
+            recessionWaveActive = false;
+            clearTimeout(invincibilityTimeout);
+            clearTimeout(resumeBoostTimeout);
+            clearTimeout(interviewTimeout);
+            clearTimeout(recessionWaveTimeout);
+
+            isGameOver = false;
+            isGameStarted = true;
+            updateJobReadinessDisplay();
+            generateGameItems(); // Generate initial food and obstacles
+            displayMessage(""); // Clear message
+            restartButton.classList.add('hidden'); // Hide restart button
+            gameInstructions.classList.add('hidden'); // Hide instructions when game starts
+            intervalId = setInterval(gameLoop, gameSpeed);
+        }
+
+        // --- Drawing Sprites (Pixel Art) ---
+        // Each sprite is drawn within a gridSize x gridSize area (20x20 pixels)
+
+        /**
+         * Draws a graduate cap sprite.
+         * @param {number} x - X coordinate of the top-left corner of the grid cell.
+         * @param {number} y - Y coordinate of the top-left corner of the grid cell.
+         * @param {string} color - The color to draw the cap.
+         */
+        function drawGraduateCap(x, y, color) {
+            ctx.fillStyle = color;
+            const px = x * gridSize;
+            const py = y * gridSize;
+
+            // Cap top (square part) - 16x16 pixels centered in 20x20 grid
+            ctx.fillRect(px + 2, py + 2, 16, 16);
+
+            // Tassel (small vertical line)
+            ctx.fillRect(px + 9, py + 0, 2, 2); // Small part on top
+            ctx.fillRect(px + 9, py + 18, 2, 2); // Small part at bottom for tassel string
+        }
+
+        /**
+         * Draws a coffee cup sprite.
+         * @param {number} x - X coordinate of the top-left corner of the grid cell.
+         * @param {number} y - Y coordinate of the top-left corner of the grid cell.
+         * @param {string} color - The color to draw the cup.
+         */
+        function drawCoffeeCup(x, y, color) {
+            ctx.fillStyle = color;
+            const px = x * gridSize;
+            const py = y * gridSize;
+
+            // Cup body
+            ctx.fillRect(px + 4, py + 6, 12, 12);
+            ctx.fillRect(px + 2, py + 8, 2, 8); // Left side extension
+            ctx.fillRect(px + 16, py + 8, 2, 8); // Right side extension
+
+            // Handle
+            ctx.fillRect(px + 18, py + 10, 2, 4);
+            ctx.fillRect(px + 16, py + 10, 2, 2); // Connect handle
+            ctx.fillRect(px + 16, py + 12, 2, 2); // Connect handle
+        }
+
+        /**
+         * Draws a briefcase sprite.
+         * @param {number} x - X coordinate of the top-left corner of the grid cell.
+         * @param {number} y - Y coordinate of the top-left corner of the grid cell.
+         * @param {string} color - The color to draw the briefcase.
+         */
+        function drawBriefcase(x, y, color) {
+            ctx.fillStyle = color;
+            const px = x * gridSize;
+            const py = y * gridSize;
+
+            // Main body of the briefcase
+            ctx.fillRect(px + 2, py + 6, 16, 12);
+
+            // Handle
+            ctx.fillRect(px + 8, py + 4, 4, 2);
+            ctx.fillRect(px + 7, py + 6, 2, 2);
+            ctx.fillRect(px + 11, py + 6, 2, 2);
+        }
+
+        /**
+         * Draws a red 'X' sprite.
+         * @param {number} x - X coordinate of the top-left corner of the grid cell.
+         * @param {number} y - Y coordinate of the top-left corner of the grid cell.
+         * @param {string} color - The color to draw the X.
+         */
+        function drawRedX(x, y, color) {
+            ctx.fillStyle = color;
+            const px = x * gridSize;
+            const py = y * gridSize;
+
+            // Draw a cross (X)
+            ctx.fillRect(px + 4, py + 4, 2, 12); // Left vertical part
+            ctx.fillRect(px + 14, py + 4, 2, 12); // Right vertical part
+            ctx.fillRect(px + 4, py + 4, 12, 2); // Top horizontal part
+            ctx.fillRect(px + 4, py + 14, 12, 2); // Bottom horizontal part
+
+            // Diagonals (more pixelated X)
+            ctx.fillRect(px + 4, py + 4, 2, 2);
+            ctx.fillRect(px + 6, py + 6, 2, 2);
+            ctx.fillRect(px + 8, py + 8, 4, 4);
+            ctx.fillRect(px + 12, py + 6, 2, 2);
+            ctx.fillRect(px + 14, py + 4, 2, 2);
+
+            ctx.fillRect(px + 4, py + 14, 2, 2);
+            ctx.fillRect(px + 6, py + 12, 2, 2);
+            ctx.fillRect(px + 12, py + 12, 2, 2);
+            ctx.fillRect(px + 14, py + 14, 2, 2);
+        }
+
+        /**
+         * Draws a ghost sprite.
+         * @param {number} x - X coordinate of the top-left corner of the grid cell.
+         * @param {number} y - Y coordinate of the top-left corner of the grid cell.
+         * @param {string} color - The color to draw the ghost.
+         */
+        function drawGhost(x, y, color) {
+            ctx.fillStyle = color;
+            const px = x * gridSize;
+            const py = y * gridSize;
+
+            // Head and body
+            ctx.fillRect(px + 4, py + 2, 12, 10); // Main body
+            ctx.fillRect(px + 2, py + 4, 2, 6); // Side extensions
+            ctx.fillRect(px + 16, py + 4, 2, 6); // Side extensions
+
+            // Bottom wiggles
+            ctx.fillRect(px + 4, py + 12, 2, 2);
+            ctx.fillRect(px + 8, py + 12, 2, 2);
+            ctx.fillRect(px + 12, py + 12, 2, 2);
+
+            // Eyes (darker color)
+            ctx.fillStyle = '#0f172a'; // Almost black
+            ctx.fillRect(px + 6, py + 6, 2, 2);
+            ctx.fillRect(px + 12, py + 6, 2, 2);
+        }
+
+        /**
+         * Draws a robot sprite.
+         * @param {number} x - X coordinate of the top-left corner of the grid cell.
+         * @param {number} y - Y coordinate of the top-left corner of the grid cell.
+         * @param {string} color - The color to draw the robot.
+         */
+        function drawRobot(x, y, color) {
+            ctx.fillStyle = color;
+            const px = x * gridSize;
+            const py = y * gridSize;
+
+            // Body
+            ctx.fillRect(px + 4, py + 6, 12, 10);
+
+            // Head
+            ctx.fillRect(px + 6, py + 2, 8, 4);
+
+            // Antennae
+            ctx.fillRect(px + 7, py + 0, 2, 2);
+            ctx.fillRect(px + 11, py + 0, 2, 2);
+
+            // Legs
+            ctx.fillRect(px + 5, py + 16, 2, 2);
+            ctx.fillRect(px + 13, py + 16, 2, 2);
+
+            // Eye (darker)
+            ctx.fillStyle = '#1a202c';
+            ctx.fillRect(px + 8, py + 3, 4, 2);
+        }
+
+        // --- Drawing Functions ---
+
+        /**
+         * Clears the canvas and draws all game elements (snake, motivation, job opportunity, obstacles).
+         */
+        function drawGame() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Motivation (coffee cup)
+            drawCoffeeCup(motivation.x, motivation.y, '#48bb78'); // Green
+
+            // Draw Job Opportunity (gold briefcase) if it exists
+            if (jobOpportunity.x !== undefined) {
+                drawBriefcase(jobOpportunity.x, jobOpportunity.y, '#ecc94b'); // Gold
+            }
+
+            // Draw Networking Coffee
+            if (networkingCoffee.x !== undefined) {
+                // Use a slightly lighter green for networking coffee
+                drawCoffeeCup(networkingCoffee.x, networkingCoffee.y, '#68d391');
+            }
+
+            // Draw Resume Boost
+            if (resumeBoost.x !== undefined) {
+                // Use a slightly lighter blue for resume boost (briefcase variant)
+                drawBriefcase(resumeBoost.x, resumeBoost.y, '#90cdf4');
+            }
+
+            // Draw Obstacles (only if not in Interview event)
+            if (!interviewEventActive) {
+                obstacles.forEach(obstacle => {
+                    switch (obstacle.type) {
+                        case 'rejection':
+                            drawRedX(obstacle.x, obstacle.y, '#e53e3e'); // Red
+                            break;
+                        case 'ghosting':
+                            drawGhost(obstacle.x, obstacle.y, '#805ad5'); // Purple
+                            break;
+                        case 'ai_replacement':
+                            drawRobot(obstacle.x, obstacle.y, '#a0aec0'); // Silver
+                            break;
+                    }
+                });
+            }
+
+
+            // Draw snake (Millennial / Graduate Cap)
+            for (let i = 0; i < snake.length; i++) {
+                const segment = snake[i];
+                // Apply flash effect if invincible
+                if (isInvincible && i === 0) { // Only flash the head
+                    // CSS animation will handle the visual flashing effect on the container
+                    // No need to change fillStyle for flash if using CSS animation
+                    drawGraduateCap(segment.x, segment.y, '#63b3ed'); // Still draw blue cap
+                } else if (i === 0) {
+                    drawGraduateCap(segment.x, segment.y, '#63b3ed'); // Blue for head
+                } else {
+                    ctx.fillStyle = '#63b3ed'; // Blue-ish color for body segments
+                    ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+                    ctx.strokeStyle = '#3182ce'; // Darker blue
+                    ctx.strokeRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+                }
+            }
+        }
+
+        // --- Snake Movement and Collision ---
+
+        /**
+         * Updates the snake's position based on its current direction.
+         * Handles eating items and collision detection.
+         */
+        function moveSnake() {
+            // Calculate new head position
+            const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
+
+            // Check for collision with walls
+            if (
+                head.x < 0 || head.x >= tileCountX ||
+                head.y < 0 || head.y >= tileCountY
+            ) {
+                gameOver("Wall!");
+                return;
+            }
+
+            // Check for collision with self
+            if (checkSelfCollision(head)) {
+                gameOver("Self-doubt!");
+                return;
+            }
+
+            // Check for collision with obstacles (only if not invincible and not in Interview event)
+            if (!isInvincible && !interviewEventActive) {
+                for (let i = 0; i < obstacles.length; i++) {
+                    if (head.x === obstacles[i].x && head.y === obstacles[i].y) {
+                        gameOver(obstacles[i].type); // Pass obstacle type for specific message
+                        return;
+                    }
+                }
+            }
+
+
+            // Add new head to the beginning of the snake array
+            snake.unshift(head);
+
+            // Check if snake ate Motivation
+            const didEatMotivation = head.x === motivation.x && head.y === motivation.y;
+            if (didEatMotivation) {
+                jobReadiness += 1;
+                updateJobReadinessDisplay();
+                triggerCollectEffect(motivation.x, motivation.y, '#48bb78'); // Trigger sparkle effect
+                generateMotivation(); // Generate new motivation
+                increaseSpeed();
+                spawnObstacleChance(); // Chance to spawn new obstacle
+            }
+            // Check if snake ate Job Opportunity
+            else if (jobOpportunity.x !== undefined && head.x === jobOpportunity.x && head.y === jobOpportunity.y) {
+                let points = 5;
+                if (resumeBoostActive) {
+                    points *= 2; // Double points if Resume Boost is active
+                    displayMessage("Resume Boost Applied! (+10 Readiness)");
+                    clearTimeout(resumeBoostTimeout); // Clear any pending timeout
+                    resumeBoostActive = false; // Deactivate boost
+                    resumeBoost = {}; // Remove the boost item visually
+                } else {
+                    displayMessage("Job Opportunity! (+5 Readiness)");
+                }
+                jobReadiness += points;
+                updateJobReadinessDisplay();
+                triggerCollectEffect(jobOpportunity.x, jobOpportunity.y, '#ecc94b'); // Trigger sparkle effect
+                jobOpportunity = {}; // Clear job opportunity after eating
+                generateMotivation(); // Always generate a new motivation after special food
+                increaseSpeed();
+                spawnObstacleChance();
+            }
+            // Check if snake ate Networking Coffee
+            else if (networkingCoffee.x !== undefined && head.x === networkingCoffee.x && head.y === networkingCoffee.y) {
+                isInvincible = true;
+                displayMessage("Networking Coffee! Invincible for 3s!");
+                networkingCoffee = {}; // Remove coffee visually
+                gameContainer.classList.add('invincible-flash'); // Add flashing effect to container
+
+                clearTimeout(invincibilityTimeout); // Clear any existing invincibility timeout
+                invincibilityTimeout = setTimeout(() => {
+                    isInvincible = false;
+                    gameContainer.classList.remove('invincible-flash'); // Remove flashing effect
+                    displayMessage("Invincibility Worn Off.");
+                }, 3000); // 3 seconds invincibility
+                generateMotivation(); // Generate new motivation to keep game going
+            }
+            // Check if snake ate Resume Boost
+            else if (resumeBoost.x !== undefined && head.x === resumeBoost.x && head.y === resumeBoost.y) {
+                resumeBoostActive = true;
+                displayMessage("Resume Boost Activated! Next Job Op points doubled!");
+                resumeBoost = {}; // Remove boost visually
+                // Resume boost lasts until next job opportunity, or times out
+                clearTimeout(resumeBoostTimeout); // Clear any existing resume boost timeout
+                resumeBoostTimeout = setTimeout(() => {
+                    if (resumeBoostActive) { // Only show message if it hasn't been used
+                        displayMessage("Resume Boost Worn Off.");
+                    }
+                    resumeBoostActive = false;
+                }, 10000); // Resume boost lasts for 10 seconds or until next job opportunity
+                generateMotivation(); // Generate new motivation
+            }
+            else {
+                // If not eating, remove tail to maintain same length
+                snake.pop();
+            }
+        }
+
+        /**
+         * Checks if the snake's head is colliding with any of its body segments.
+         * @param {object} head - The coordinates of the snake's head.
+         * @returns {boolean} True if collision occurs, false otherwise.
+         */
+        function checkSelfCollision(head) {
+            // Start from the second segment (index 1) to avoid checking against itself
+            for (let i = 1; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
+         * Moves obstacles if job readiness is high enough and not in an Interview event.
+         * Also handles Recession Wave movement.
+         */
+        function moveObstacles() {
+            if (jobReadiness >= 20 && !interviewEventActive) {
+                // Only move obstacles every N game loops for slower movement
+                if (Math.floor(Date.now() / gameSpeed) % 5 === 0) { // Move every 5 game ticks
+                    obstacles.forEach(obstacle => {
+                        if (recessionWaveActive) {
+                            // Move based on recession wave direction
+                            obstacle.x += recessionWaveDirection.x;
+                            obstacle.y += recessionWaveDirection.y;
+                        } else {
+                            // Random subtle movement for individual obstacles
+                            const randMove = Math.floor(Math.random() * 4); // 0: none, 1: up, 2: down, 3: left, 4: right
+                            switch (randMove) {
+                                case 1: obstacle.y = Math.max(0, obstacle.y - 1); break;
+                                case 2: obstacle.y = Math.min(tileCountY - 1, obstacle.y + 1); break;
+                                case 3: obstacle.x = Math.max(0, obstacle.x - 1); break;
+                                case 4: obstacle.x = Math.min(tileCountX - 1, obstacle.x + 1); break;
+                            }
+                        }
+
+                        // Keep obstacles within bounds after movement
+                        obstacle.x = Math.max(0, Math.min(obstacle.x, tileCountX - 1));
+                        obstacle.y = Math.max(0, Math.min(obstacle.y, tileCountY - 1));
+                    });
+                }
+            }
+        }
+
+
+        // --- Item Generation ---
+
+        /**
+         * Generates a random valid position on the grid that doesn't overlap with snake or existing items.
+         * @returns {object} An object with x and y coordinates.
+         */
+        function getRandomValidPosition() {
+            let newX, newY;
+            let collision;
+
+            do {
+                newX = Math.floor(Math.random() * tileCountX);
+                newY = Math.floor(Math.random() * tileCountY);
+                collision = false;
+
+                // Check against snake
+                for (let i = 0; i < snake.length; i++) {
+                    if (snake[i].x === newX && snake[i].y === newY) {
+                        collision = true;
+                        break;
+                    }
+                }
+                // Check against existing motivation
+                if (!collision && motivation.x === newX && motivation.y === newY) {
+                    collision = true;
+                }
+                // Check against existing job opportunity
+                if (!collision && jobOpportunity.x === newX && jobOpportunity.y === newY) {
+                    collision = true;
+                }
+                // Check against networking coffee
+                if (!collision && networkingCoffee.x === newX && networkingCoffee.y === newY) {
+                    collision = true;
+                }
+                // Check against resume boost
+                if (!collision && resumeBoost.x === newX && resumeBoost.y === newY) {
+                    collision = true;
+                }
+                // Check against existing obstacles
+                if (!collision) {
+                    for (let i = 0; i < obstacles.length; i++) {
+                        if (obstacles[i].x === newX && obstacles[i].y === newY) {
+                            collision = true;
+                            break;
+                        }
+                    }
+                }
+            } while (collision);
+            return { x: newX, y: newY };
+        }
+
+        /**
+         * Generates a new position for Motivation.
+         */
+        function generateMotivation() {
+            motivation = getRandomValidPosition();
+        }
+
+        /**
+         * Generates a new position for Job Opportunity (rarer).
+         */
+        function generateJobOpportunity() {
+            if (Math.random() < 0.2) { // 20% chance to spawn a Job Opportunity
+                jobOpportunity = getRandomValidPosition();
+            } else {
+                jobOpportunity = {}; // Ensure it's cleared if not spawned
+            }
+        }
+
+        /**
+         * Generates a new Networking Coffee power-up.
+         */
+        function generateNetworkingCoffee() {
+            if (Math.random() < 0.15) { // 15% chance to spawn networking coffee
+                networkingCoffee = getRandomValidPosition();
+            } else {
+                networkingCoffee = {};
+            }
+        }
+
+        /**
+         * Generates a new Resume Boost power-up.
+         */
+        function generateResumeBoost() {
+            if (Math.random() < 0.1) { // 10% chance to spawn resume boost
+                resumeBoost = getRandomValidPosition();
+            } else {
+                resumeBoost = {};
+            }
+        }
+
+
+        /**
+         * Generates a new obstacle block.
+         * Obstacle type depends on a random chance, favoring rejections/ghosting initially.
+         * AI replacement becomes more likely with higher scores.
+         */
+        function generateObstacle() {
+            const pos = getRandomValidPosition();
+            let type;
+            const rand = Math.random();
+
+            // Make AI Replacement more likely as score increases
+            if (jobReadiness >= 10 && rand < 0.4) { // 40% chance if score is high
+                type = 'ai_replacement';
+            } else if (rand < 0.7) { // 70% chance for rejection (if not AI)
+                type = 'rejection';
+            } else { // Remaining chance for ghosting
+                type = 'ghosting';
+            }
+
+            obstacles.push({ x: pos.x, y: pos.y, type: type, originalX: pos.x, originalY: pos.y }); // Store original pos for reset
+        }
+
+        /**
+         * Spawns a new obstacle with a certain probability after eating.
+         */
+        function spawnObstacleChance() {
+            // Increase obstacle spawn rate as score increases
+            const spawnRate = 0.3 + (jobReadiness / 50);
+            if (Math.random() < Math.min(spawnRate, 0.7)) { // Cap spawn rate at 70%
+                generateObstacle();
+            }
+        }
+
+        /**
+         * Generates initial set of game items (motivation and some obstacles).
+         */
+        function generateGameItems() {
+            generateMotivation();
+            generateJobOpportunity(); // Try to spawn one initially
+            generateNetworkingCoffee();
+            generateResumeBoost();
+            obstacles = []; // Clear previous obstacles
+            // Spawn a few initial rejections/ghosting to make it interesting
+            for (let i = 0; i < 3; i++) {
+                generateObstacle();
+            }
+        }
+
+        // --- Game State Updates ---
+
+        /**
+         * Updates the job readiness display on the UI.
+         */
+        function updateJobReadinessDisplay() {
+            jobReadinessDisplay.textContent = `Job Readiness: ${jobReadiness}`;
+        }
+
+        /**
+         * Updates the highest progress display and saves it to local storage if current score is higher.
+         */
+        function updateHighestProgressDisplay() {
+            if (jobReadiness > highestProgress) {
+                highestProgress = jobReadiness;
+                localStorage.setItem('millennialQuestHighScore', highestProgress);
+            }
+            highestProgressDisplay.textContent = `Highest Progress: ${highestProgress}`;
+        }
+
+        /**
+         * Increases the game speed slightly each time the snake eats food.
+         */
+        function increaseSpeed() {
+            if (gameSpeed > 50) { // Cap the speed to prevent it from becoming unplayable
+                gameSpeed -= 5; // Decrease interval to increase speed
+                clearInterval(intervalId); // Clear old interval
+                intervalId = setInterval(gameLoop, gameSpeed); // Start new interval with updated speed
+            }
+        }
+
+        /**
+         * Ends the game, displays game over message, and updates high score.
+         * @param {string} reason - The reason for game over (e.g., "rejection", "wall").
+         */
+        function gameOver(reason) {
+            isGameOver = true;
+            clearInterval(intervalId); // Stop the game loop
+            updateHighestProgressDisplay(); // Update high score before showing message
+            triggerGameOverEffects(); // Trigger visual effects
+
+            // Clear any active power-up/event timers
+            clearTimeout(invincibilityTimeout);
+            clearTimeout(resumeBoostTimeout);
+            clearTimeout(interviewTimeout);
+            clearTimeout(recessionWaveTimeout);
+            gameContainer.classList.remove('invincible-flash'); // Ensure flash is removed
+
+            let message = "QUEST OVER! ";
+            switch (reason) {
+                case 'rejection':
+                    message += "You got a Rejection Letter!";
+                    break;
+                case 'ghosting':
+                    message += "You got Ghosted!";
+                    break;
+                case 'ai_replacement':
+                    message += "AI Replaced You!";
+                    break;
+                case 'Wall!':
+                    message += "You hit a Career Wall!";
+                    break;
+                case 'Self-doubt!':
+                    message += "Overwhelmed by Self-doubt!";
+                    break;
+                default:
+                    message += "Your Quest Ended!";
+                    break;
+            }
+            displayMessage(message + " Press Restart Quest.");
+            restartButton.classList.remove('hidden'); // Show restart button
+            isGameStarted = false; // Mark game as not started, waiting for restart
+            gameInstructions.classList.remove('hidden'); // Show instructions again after game over
+        }
+
+        /**
+         * Displays a message on the game UI.
+         * @param {string} msg - The message to display.
+         */
+        function displayMessage(msg) {
+            gameMessage.textContent = msg;
+        }
+
+        // --- Animated Effects ---
+
+        /**
+         * Triggers a brief sparkle/particle effect when an item is collected.
+         * @param {number} x - X grid coordinate of the collected item.
+         * @param {number} y - Y grid coordinate of the collected item.
+         * @param {string} color - Color of the effect.
+         */
+        function triggerCollectEffect(x, y, color) {
+            const px = x * gridSize;
+            const py = y * gridSize;
+
+            // Draw a few small "sparkle" pixels around the collected item
+            ctx.fillStyle = color;
+            ctx.fillRect(px + gridSize / 4, py + gridSize / 4, gridSize / 2, gridSize / 2);
+            ctx.fillRect(px, py, 2, 2);
+            ctx.fillRect(px + gridSize - 2, py, 2, 2);
+            ctx.fillRect(px, py + gridSize - 2, 2, 2);
+            ctx.fillRect(px + gridSize - 2, py + gridSize - 2, 2, 2);
+
+            // Clear the effect after a very short delay
+            setTimeout(() => {
+                drawGame(); // Redraw the entire game to clear the temporary sparkle
+            }, 50); // Flash for 50ms
+        }
+
+        /**
+         * Triggers screen shake and red flash on game over.
+         */
+        function triggerGameOverEffects() {
+            // Red flash overlay
+            const flashOverlay = document.createElement('div');
+            flashOverlay.classList.add('red-flash-overlay');
+            gameContainer.appendChild(flashOverlay);
+
+            // Remove flash overlay after animation
+            setTimeout(() => {
+                gameContainer.removeChild(flashOverlay);
+            }, 500); // Animation duration is 0.5s
+
+            // Screen shake effect
+            gameContainer.classList.add('shake');
+            setTimeout(() => {
+                gameContainer.classList.remove('shake');
+            }, 200); // Shake for 200ms
+        }
+
+        // --- Special Events Logic ---
+
+        /**
+         * Checks if a special event should be triggered based on random chance.
+         * Ensures only one event is active at a time.
+         */
+        function checkSpecialEventTrigger() {
+            if (isGameStarted && !interviewEventActive && !recessionWaveActive && jobReadiness >= 5) {
+                const rand = Math.random();
+                if (rand < 0.005) { // Small chance per game tick (e.g., 0.5%)
+                    triggerInterviewEvent();
+                } else if (rand < 0.01) { // Slightly smaller chance for recession wave (e.g., 0.5% after interview chance)
+                    triggerRecessionWave();
+                }
+            }
+        }
+
+        /**
+         * Triggers the "Interview" event: obstacles disappear for a duration.
+         */
+        function triggerInterviewEvent() {
+            interviewEventActive = true;
+            displayMessage("INTERVIEW! Obstacles disappeared temporarily!");
+            let previousObstacles = [...obstacles]; // Store current obstacles to restore later
+            obstacles = []; // Clear obstacles from screen
+
+            clearTimeout(interviewTimeout); // Clear any pending interview timeout
+            interviewTimeout = setTimeout(() => {
+                interviewEventActive = false;
+                obstacles = previousObstacles; // Restore obstacles
+                displayMessage("Interview Over. Obstacles returned!");
+                drawGame(); // Redraw with obstacles
+            }, 5000); // 5 seconds duration
+        }
+
+        /**
+         * Triggers the "Recession Wave" event: all obstacles move in a unified direction.
+         */
+        function triggerRecessionWave() {
+            recessionWaveActive = true;
+            displayMessage("RECESSION WAVE! Obstacles are moving together!");
+
+            // Determine a random direction for the wave
+            const directions = [{x: 1, y: 0}, {x: -1, y: 0}, {x: 0, y: 1}, {x: 0, y: -1}];
+            recessionWaveDirection = directions[Math.floor(Math.random() * directions.length)];
+
+            clearTimeout(recessionWaveTimeout); // Clear any pending recession wave timeout
+            recessionWaveTimeout = setTimeout(() => {
+                recessionWaveActive = false;
+                recessionWaveDirection = { x: 0, y: 0 }; // Reset direction
+                displayMessage("Recession Wave Passed. Obstacles move individually.");
+            }, 5000); // 5 seconds duration
+        }
+
+
+        // --- Event Listeners ---
+
+        /**
+         * Handles keyboard input for snake direction.
+         */
+        document.addEventListener('keydown', e => {
+            // Prevent multiple direction changes within a single game frame
+            if (changingDirection || isGameOver) return;
+            changingDirection = true;
+
+            const keyPressed = e.key;
+            const goingUp = direction.y === -1;
+            const goingDown = direction.y === 1;
+            const goingLeft = direction.x === -1;
+            const goingRight = direction.x === 1;
+
+            // Start the game if it hasn't started and a valid direction key is pressed
+            if (!isGameStarted && (keyPressed === 'ArrowUp' || keyPressed === 'ArrowDown' ||
+                                   keyPressed === 'ArrowLeft' || keyPressed === 'ArrowRight')) {
+                startGame();
+            }
+
+            switch (keyPressed) {
+                case 'ArrowLeft':
+                    if (!goingRight) {
+                        direction = { x: -1, y: 0 };
+                    }
+                    break;
+                case 'ArrowUp':
+                    if (!goingDown) {
+                        direction = { x: 0, y: -1 };
+                    }
+                    break;
+                case 'ArrowRight':
+                    if (!goingLeft) {
+                        direction = { x: 1, y: 0 };
+                    }
+                    break;
+                case 'ArrowDown':
+                    if (!goingUp) {
+                        direction = { x: 0, y: 1 };
+                    }
+                    break;
+            }
+        });
+
+        /**
+         * Handles click/touch input for on-screen control buttons.
+         */
+        controlButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                if (changingDirection || isGameOver) return;
+                changingDirection = true;
+
+                const newDirection = button.dataset.direction;
+                const goingUp = direction.y === -1;
+                const goingDown = direction.y === 1;
+                const goingLeft = direction.x === -1;
+                const goingRight = direction.x === 1;
+
+                // Start the game if it hasn't started
+                if (!isGameStarted) {
+                    startGame();
+                }
+
+                switch (newDirection) {
+                    case 'left':
+                        if (!goingRight) {
+                            direction = { x: -1, y: 0 };
+                        }
+                        break;
+                    case 'up':
+                        if (!goingDown) {
+                            direction = { x: 0, y: -1 };
+                        }
+                        break;
+                    case 'right':
+                        if (!goingLeft) {
+                            direction = { x: 1, y: 0 };
+                        }
+                        break;
+                    case 'down':
+                        if (!goingUp) {
+                            direction = { x: 0, y: 1 };
+                        }
+                        break;
+                }
+            });
+        });
+
+        /**
+         * Handles restart button click.
+         */
+        restartButton.addEventListener('click', startGame);
+
+    </script>
+</body>
+</html>
