@@ -18,7 +18,7 @@
             margin: 0;
             font-family: 'Press Start 2P', cursive; /* Pixelated font */
             color: #e2e8f0; /* Light text color */
-            overflow: hidden; /* Prevent scrolling */
+            /* Removed overflow: hidden; to allow scrolling if content exceeds viewport */
         }
 
         .game-container {
@@ -35,6 +35,7 @@
             box-sizing: border-box;
             border: 2px solid #4a5568; /* Subtle container border */
             position: relative; /* For screen shake effect */
+            margin: 20px 0; /* Add some vertical margin to prevent content from touching edges */
         }
 
         canvas {
@@ -111,7 +112,7 @@
             padding: 18px 25px; /* Larger buttons for touch */
             border: 2px solid #a0aec0;
             border-radius: 10px; /* More rounded */
-            font-family: 'Press Start 2P', cursive;
+            font-family: 'Press Start +P', cursive;
             font-size: 0.9em; /* Slightly larger font */
             cursor: pointer;
             transition: background-color 0.2s, transform 0.1s, box-shadow 0.1s;
@@ -1198,3 +1199,4 @@
     </script>
 </body>
 </html>
+
