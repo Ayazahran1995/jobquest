@@ -13,12 +13,15 @@
             background-color: #1a202c; /* Dark background for 8-bit feel */
             display: flex;
             justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            align-items: flex-start; /* Align content to the top */
             margin: 0;
             font-family: 'Press Start 2P', cursive; /* Pixelated font */
             color: #e2e8f0; /* Light text color */
-            /* Removed overflow: hidden; to allow scrolling if content exceeds viewport */
+            overflow-y: auto; /* Allow vertical scrolling if content exceeds viewport height */
+            padding-top: 20px; /* Add some padding to the top of the body */
+            padding-bottom: 20px; /* This will be adjusted by media query for fixed controls */
+            box-sizing: border-box; /* Include padding in element's total width and height */
+            min-height: 100vh; /* Ensure body takes full height for centering when content is short */
         }
 
         .game-container {
@@ -34,8 +37,8 @@
             width: 500px; /* Max width */
             box-sizing: border-box;
             border: 2px solid #4a5568; /* Subtle container border */
-            position: relative; /* For screen shake effect */
-            margin: 20px 0; /* Add some vertical margin to prevent content from touching edges */
+            position: relative; /* For screen shake effect and overlays */
+            margin-bottom: 20px; /* Default margin, will be adjusted for fixed controls */
         }
 
         canvas {
@@ -43,7 +46,7 @@
             border: 4px solid #63b3ed; /* Blue border */
             border-radius: 5px;
             display: block;
-            touch-action: none; /* Prevent default touch actions like scrolling */
+            touch-action: none; /* Prevent default touch actions like scrolling/zooming */
             image-rendering: pixelated; /* Ensure crisp pixels */
             width: 100%; /* Make canvas responsive */
             max-width: 400px; /* Limit max width */
@@ -112,7 +115,7 @@
             padding: 18px 25px; /* Larger buttons for touch */
             border: 2px solid #a0aec0;
             border-radius: 10px; /* More rounded */
-            font-family: 'Press Start +P', cursive;
+            font-family: 'Press Start 2P', cursive; /* Corrected font name */
             font-size: 0.9em; /* Slightly larger font */
             cursor: pointer;
             transition: background-color 0.2s, transform 0.1s, box-shadow 0.1s;
@@ -165,13 +168,36 @@
             box-shadow: 0px 0px 0px #9b2c2c; /* Shadow disappears on press */
         }
 
-        /* Responsive styling for smaller screens */
-        @media (max-width: 600px) {
-            .game-container {
-                padding: 15px;
-                border-radius: 8px;
-                box-shadow: 6px 6px 0px rgba(0, 0, 0, 0.7);
+        /* Responsive styling for smaller screens (mobile first) */
+        @media (max-width: 767px) { /* Apply only for mobile screens */
+            .controls {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                display: grid; /* Keep grid for layout of buttons */
+                grid-template-areas:
+                    ". up ."
+                    "left . right"
+                    ". down .";
+                gap: 10px; /* Reduced gap for mobile buttons */
+                padding: 15px; /* Padding inside the fixed control area */
+                background-color: rgba(30, 41, 59, 0.9); /* Semi-transparent dark background */
+                box-shadow: 0 -5px 15px rgba(0,0,0,0.5); /* Shadow at the top */
+                z-index: 100; /* Ensure it's above other content */
+                max-width: 100%; /* Ensure it spans full width */
+                box-sizing: border-box; /* Include padding in width */
             }
+
+            /* Adjust body padding to make space for fixed controls */
+            body {
+                padding-bottom: 120px; /* Enough space for the fixed controls */
+            }
+
+            .game-container {
+                margin-bottom: 0; /* Remove bottom margin as controls are fixed */
+            }
+
             .game-info {
                 font-size: 0.8em;
                 margin-bottom: 10px;
@@ -195,6 +221,17 @@
                 margin-top: 15px;
             }
         }
+
+        /* Hide control buttons on desktop (original rule, adjusted for fixed) */
+        @media (min-width: 768px) {
+            .controls {
+                display: none; /* Hide touch controls on larger screens */
+            }
+            body {
+                padding-bottom: 20px; /* Reset padding for desktop if needed */
+            }
+        }
+
         /* Specific CSS for screen shake effect */
         .shake {
             animation: shake 0.2s cubic-bezier(.36,.07,.19,.97) both;
@@ -295,6 +332,13 @@
         let direction = { x: 0, y: 0 }; // Initial direction (not moving)
         let changingDirection = false; // To prevent multiple direction changes per frame
 
+        // Touch swipe variables
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchEndX = 0;
+        let touchEndY = 0;
+        const minSwipeDistance = 20; // Minimum distance for a swipe to register
+
         // Game Items
         let motivation = {}; // "Food" for motivation (coffee cup)
         let jobOpportunity = {}; // Special "food" for job opportunities (gold briefcase)
@@ -328,9 +372,9 @@
          * Adjusts tile counts accordingly to ensure a consistent grid.
          */
         function setupCanvas() {
-            // Subtract padding of game-container from parent client width for canvas width
-            const containerWidth = gameContainer.clientWidth - (2 * 25); // 25px padding on each side
-            const size = Math.min(containerWidth, 400); // Max size 400px, or container width
+            // Subtract padding and border from game-container's client width for canvas width
+            const containerEffectiveWidth = gameContainer.offsetWidth - (2 * 25) - (2 * 2); // padding + border
+            const size = Math.min(containerEffectiveWidth, 400); // Max size 400px, or container width
             canvas.width = size;
             canvas.height = size;
 
@@ -1036,7 +1080,9 @@
 
             // Remove flash overlay after animation
             setTimeout(() => {
-                gameContainer.removeChild(flashOverlay);
+                if (gameContainer.contains(flashOverlay)) { // Check if it still exists before trying to remove
+                    gameContainer.removeChild(flashOverlay);
+                }
             }, 500); // Animation duration is 0.5s
 
             // Screen shake effect
@@ -1192,6 +1238,76 @@
         });
 
         /**
+         * Handles touch start event on the canvas for swipe detection.
+         * @param {TouchEvent} e - The touch event object.
+         */
+        canvas.addEventListener('touchstart', e => {
+            e.preventDefault(); // Prevent scrolling/zooming
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        }, { passive: false }); // Use passive: false to allow preventDefault
+
+        /**
+         * Handles touch end event on the canvas for swipe detection.
+         * @param {TouchEvent} e - The touch event object.
+         */
+        canvas.addEventListener('touchend', e => {
+            e.preventDefault(); // Prevent tap-to-click issues
+            if (e.changedTouches.length === 0) return; // Ensure there's a touch to process
+            touchEndX = e.changedTouches[0].clientX;
+            touchEndY = e.changedTouches[0].clientY;
+
+            handleSwipeGesture();
+        }, { passive: false });
+
+        /**
+         * Determines the swipe direction and updates the snake's direction.
+         */
+        function handleSwipeGesture() {
+            if (isGameOver || changingDirection) return; // Don't process if game over or direction change in progress
+
+            const dx = touchEndX - touchStartX;
+            const dy = touchEndY - touchStartY;
+
+            // Check if it's a significant swipe
+            if (Math.abs(dx) > minSwipeDistance || Math.abs(dy) > minSwipeDistance) {
+                changingDirection = true; // Set changingDirection to true
+                if (!isGameStarted) {
+                    startGame(); // Start game on first swipe
+                }
+
+                // Determine if horizontal or vertical swipe is dominant
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    // Horizontal swipe
+                    if (dx > 0) {
+                        // Right swipe
+                        if (direction.x !== -1) { // Cannot go right if currently going left
+                            direction = { x: 1, y: 0 };
+                        }
+                    } else {
+                        // Left swipe
+                        if (direction.x !== 1) { // Cannot go left if currently going right
+                            direction = { x: -1, y: 0 };
+                        }
+                    }
+                } else {
+                    // Vertical swipe
+                    if (dy > 0) {
+                        // Down swipe
+                        if (direction.y !== -1) { // Cannot go down if currently going up
+                            direction = { x: 0, y: 1 };
+                        }
+                    } else {
+                        // Up swipe
+                        if (direction.y !== 1) { // Cannot go up if currently going down
+                            direction = { x: 0, y: -1 };
+                        }
+                    }
+                }
+            }
+        }
+
+        /**
          * Handles restart button click.
          */
         restartButton.addEventListener('click', startGame);
@@ -1199,4 +1315,3 @@
     </script>
 </body>
 </html>
-
