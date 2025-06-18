@@ -12,16 +12,17 @@
         body {
             background-color: #1a202c; /* Dark background for 8-bit feel */
             display: flex;
-            justify-content: center;
-            align-items: flex-start; /* Align content to the top */
+            flex-direction: column; /* Stack children vertically */
+            align-items: center; /* Center children horizontally */
+            justify-content: flex-start; /* Align content to the top initially */
             margin: 0;
             font-family: 'Press Start 2P', cursive; /* Pixelated font */
             color: #e2e8f0; /* Light text color */
             overflow-y: auto; /* Allow vertical scrolling if content exceeds viewport height */
             padding-top: 20px; /* Add some padding to the top of the body */
-            padding-bottom: 20px; /* This will be adjusted by media query for fixed controls */
+            padding-bottom: 20px; /* Default padding, will be adjusted by media query */
             box-sizing: border-box; /* Include padding in element's total width and height */
-            min-height: 100vh; /* Ensure body takes full height for centering when content is short */
+            min-height: 100vh; /* Ensure body takes full height for proper centering when content is short */
         }
 
         .game-container {
@@ -115,7 +116,7 @@
             padding: 18px 25px; /* Larger buttons for touch */
             border: 2px solid #a0aec0;
             border-radius: 10px; /* More rounded */
-            font-family: 'Press Start 2P', cursive; /* Corrected font name */
+            font-family: 'Press Start 2P', cursive;
             font-size: 0.9em; /* Slightly larger font */
             cursor: pointer;
             transition: background-color 0.2s, transform 0.1s, box-shadow 0.1s;
@@ -171,7 +172,7 @@
         /* Responsive styling for smaller screens (mobile first) */
         @media (max-width: 767px) { /* Apply only for mobile screens */
             .controls {
-                position: fixed;
+                position: fixed; /* Keep controls fixed at the bottom */
                 bottom: 0;
                 left: 0;
                 right: 0;
@@ -192,6 +193,8 @@
             /* Adjust body padding to make space for fixed controls */
             body {
                 padding-bottom: 120px; /* Enough space for the fixed controls */
+                /* For very short content, ensure it's still vertically centered if needed */
+                min-height: calc(100vh - 120px);
             }
 
             .game-container {
@@ -222,13 +225,13 @@
             }
         }
 
-        /* Hide control buttons on desktop (original rule, adjusted for fixed) */
+        /* Hide control buttons on desktop */
         @media (min-width: 768px) {
             .controls {
                 display: none; /* Hide touch controls on larger screens */
             }
             body {
-                padding-bottom: 20px; /* Reset padding for desktop if needed */
+                padding-bottom: 20px; /* Reset padding for desktop */
             }
         }
 
@@ -288,9 +291,10 @@
 
         <!-- Game Instructions Section -->
         <div id="gameInstructions" class="game-instructions">
-            <p>Welcome to Job Quest!</p>
+            <p>Welcome to **Millennial Quest**!</p>
             <p>Navigate the job market as a millennial:</p>
             <p>- You are the 🟦 <strong>Blue Graduate Cap</strong>.</p>
+            <p>- Control: **Swipe on the game canvas** or use the **fixed directional buttons** at the bottom.</p>
             <p>- Eat 🟩 <strong>Motivation</strong> (Coffee Cup - +1 Readiness).</p>
             <p>- Look out for 🟨 <strong>Job Opportunities</strong> (Gold Briefcase - +5 Readiness - they're rare!).</p>
             <p>- Collect 🟢 <strong>Networking Coffee</strong> for temporary invincibility!</p>
@@ -326,6 +330,9 @@
         let highestProgress = localStorage.getItem('millennialQuestHighScore') || 0; // Renamed from highScore
         let isGameOver = false;
         let isGameStarted = false; // To track if the game has started
+
+        // Determine if on mobile for difficulty adjustment
+        const isMobileDevice = window.matchMedia("(max-width: 767px)").matches;
 
         // Snake (Millennial character) properties
         let snake = [{ x: 10, y: 10 }]; // Initial position
@@ -429,7 +436,10 @@
             jobReadiness = 0;
             snake = [{ x: 10, y: 10 }];
             direction = { x: 0, y: 0 }; // Reset direction
-            gameSpeed = 150; // Reset speed
+            
+            // Adjust initial game speed based on device type
+            gameSpeed = isMobileDevice ? 180 : 150; // Slower initial speed for mobile
+
             obstacles = []; // Clear obstacles
             isInvincible = false;
             resumeBoostActive = false;
@@ -794,7 +804,7 @@
         function moveObstacles() {
             if (jobReadiness >= 20 && !interviewEventActive) {
                 // Only move obstacles every N game loops for slower movement
-                if (Math.floor(Date.now() / gameSpeed) % 5 === 0) { // Move every 5 game ticks
+                if (Math.floor(Date.now() / gameSpeed) % (isMobileDevice ? 7 : 5) === 0) { // Slower obstacle movement on mobile
                     obstacles.forEach(obstacle => {
                         if (recessionWaveActive) {
                             // Move based on recession wave direction
@@ -939,7 +949,7 @@
          */
         function spawnObstacleChance() {
             // Increase obstacle spawn rate as score increases
-            const spawnRate = 0.3 + (jobReadiness / 50);
+            const spawnRate = 0.3 + (jobReadiness / (isMobileDevice ? 70 : 50)); // Slower obstacle spawn increase on mobile
             if (Math.random() < Math.min(spawnRate, 0.7)) { // Cap spawn rate at 70%
                 generateObstacle();
             }
@@ -984,8 +994,9 @@
          * Increases the game speed slightly each time the snake eats food.
          */
         function increaseSpeed() {
+            let speedIncrement = isMobileDevice ? 3 : 5; // Smaller speed increment for mobile
             if (gameSpeed > 50) { // Cap the speed to prevent it from becoming unplayable
-                gameSpeed -= 5; // Decrease interval to increase speed
+                gameSpeed -= speedIncrement; // Decrease interval to increase speed
                 clearInterval(intervalId); // Clear old interval
                 intervalId = setInterval(gameLoop, gameSpeed); // Start new interval with updated speed
             }
