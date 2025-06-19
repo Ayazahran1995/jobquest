@@ -4,10 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Millennial Quest: 8-Bit Job Market Adventure</title>
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-5475PZ79');</script>
+    <!-- End Google Tag Manager -->
     <!-- Tailwind CSS CDN for basic styling outside the canvas -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start 2P&display=swap');
 
         body {
             background-color: #1a202c; /* Dark background for 8-bit feel */
@@ -32,8 +39,8 @@
             background: linear-gradient(145deg, #2d3748, #1a202c); /* Subtle dark gradient */
             padding: 25px; /* Slightly more padding */
             border-radius: 12px; /* Slightly more rounded */
-            box-shadow: 8px 8px 0px rgba(0, 0, 0, 0.7), /* More pronounced 8-bit shadow */
-                        -4px -4px 10px rgba(71, 85, 105, 0.2); /* Subtle inner light */
+            box-shadow: 10px 10px 0px rgba(0, 0, 0, 0.8), /* More pronounced 8-bit shadow */
+                        -5px -5px 15px rgba(71, 85, 105, 0.3); /* Subtle inner light */
             max-width: 90vw; /* Responsive width */
             width: 500px; /* Max width */
             box-sizing: border-box;
@@ -62,6 +69,11 @@
             margin-bottom: 15px;
             font-size: 0.9em;
             color: #a0aec0;
+            background-color: #2d3748; /* Slightly darker background for info */
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #4a5568;
+            box-shadow: 2px 2px 0px rgba(0,0,0,0.5);
         }
 
         .game-message {
@@ -86,8 +98,26 @@
             color: #cbd5e0;
             box-shadow: 4px 4px 0px #2d3748; /* More prominent shadow */
             text-align: left;
-            transition: opacity 0.5s ease-in-out; /* Smooth transition for hiding/showing */
+            overflow: hidden; /* Hide overflow when collapsed */
+            max-height: 0; /* Initially hidden height */
+            opacity: 0; /* Initially hidden opacity */
+            transition: max-height 0.7s ease-in-out, opacity 0.7s ease-in-out, padding 0.7s ease-in-out, margin-top 0.7s ease-in-out;
+            box-sizing: border-box; /* Include padding in max-height calculation */
         }
+
+        .game-instructions.active {
+            max-height: 300px; /* Adjust based on content height, sufficiently large */
+            opacity: 1;
+            padding: 15px; /* Apply padding when active */
+            margin-top: 20px; /* Apply margin when active */
+        }
+        /* Reset padding/margin for collapsed state */
+        .game-instructions:not(.active) {
+            padding-top: 0;
+            padding-bottom: 0;
+            margin-top: 0;
+        }
+
 
         .game-instructions p {
             margin-bottom: 8px;
@@ -142,21 +172,37 @@
         .control-right { grid-area: right; }
         .control-down { grid-area: down; }
 
-        .restart-button {
-            background: linear-gradient(180deg, #e53e3e, #c53030); /* Gradient for restart button */
+        .action-button { /* General style for action buttons like Restart and Instructions */
+            background: linear-gradient(180deg, #63b3ed, #3182ce); /* Blue gradient */
             color: #ffffff;
-            padding: 18px 35px; /* Larger padding */
-            border: 2px solid #f56565;
+            padding: 18px 35px;
+            border: 2px solid #90cdf4;
             border-radius: 10px;
             font-family: 'Press Start 2P', cursive;
-            font-size: 1.1em; /* Slightly larger font */
+            font-size: 1.1em;
             cursor: pointer;
-            margin-top: 25px; /* More spacing */
+            margin-top: 25px;
             transition: background-color 0.2s, transform 0.1s, box-shadow 0.1s;
-            box-shadow: 4px 4px 0px #9b2c2c; /* Stronger 8-bit shadow */
+            box-shadow: 4px 4px 0px #2b6cb0; /* Darker blue shadow */
             -webkit-user-select: none;
             -ms-user-select: none;
             user-select: none;
+        }
+
+        .action-button:hover {
+            background-color: #4299e1;
+            box-shadow: 6px 6px 0px #2b6cb0;
+        }
+
+        .action-button:active {
+            transform: translateY(4px) translateX(4px);
+            box-shadow: 0px 0px 0px #2b6cb0;
+        }
+
+        .restart-button {
+            background: linear-gradient(180deg, #e53e3e, #c53030); /* Red gradient for restart button */
+            border: 2px solid #f56565;
+            box-shadow: 4px 4px 0px #9b2c2c; /* Stronger 8-bit shadow */
         }
 
         .restart-button:hover {
@@ -218,7 +264,7 @@
                 padding: 12px 18px;
                 font-size: 0.7em;
             }
-            .restart-button {
+            .action-button {
                 padding: 12px 25px;
                 font-size: 0.9em;
                 margin-top: 15px;
@@ -278,9 +324,26 @@
             from { opacity: 1; }
             to { opacity: 0.5; }
         }
+
+        /* Temporary hit feedback flash */
+        .hit-flash-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 100, 100, 0.2); /* Lighter red, less opaque */
+            z-index: 9; /* Below game over flash */
+            pointer-events: none;
+            animation: fadeOut 0.3s forwards; /* Faster fade out */
+        }
     </style>
 </head>
 <body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5475PZ79"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
     <div class="game-container" id="gameContainer">
         <div class="game-info">
             <div id="score">Job Readiness: 0</div>
@@ -289,21 +352,27 @@
         <canvas id="gameCanvas"></canvas>
         <div id="gameMessage" class="game-message">Press arrow keys or use controls to start your quest!</div>
 
+        <!-- Instructions Toggle Button -->
+        <button id="instructionsToggleButton" class="action-button">Instructions</button>
+
         <!-- Game Instructions Section -->
         <div id="gameInstructions" class="game-instructions">
-            <p>Welcome to **Millennial Quest**!</p>
-            <p>Navigate the job market as a millennial:</p>
-            <p>- You are the 🟦 <strong>Blue Graduate Cap</strong>.</p>
-            <p>- Control: **Swipe on the game canvas** or use the **fixed directional buttons** at the bottom.</p>
-            <p>- Eat 🟩 <strong>Motivation</strong> (Coffee Cup - +1 Readiness).</p>
-            <p>- Look out for 🟨 <strong>Job Opportunities</strong> (Gold Briefcase - +5 Readiness - they're rare!).</p>
-            <p>- Collect 🟢 <strong>Networking Coffee</strong> for temporary invincibility!</p>
-            <p>- Grab 🔵 <strong>Resume Boost</strong> to double your next Job Opportunity points!</p>
-            <p>- Avoid 🟥 <strong>Rejection Letters</strong> (Red 'X'), 🟪 <strong>Ghosting</strong> (Purple Ghost), and ⬜ <strong>AI Replacing Jobs</strong> (Silver Robot). Hitting them ends your quest!</p>
+            <p>Welcome to Millennial Quest!</p>
+            <p><strong>Control:</strong> Swipe on canvas or use fixed buttons.</p>
+            <p><strong>Goals:</strong></p>
+            <p>- Eat 🟩 <strong>Motivation (Green Coffee Cup)</strong>: +1 Readiness.</p>
+            <p>- Grab 🟨 <strong>Job Opportunities (Gold Briefcase)</strong>: +5 Readiness (rare!).</p>
+            <p><strong>Power-ups:</strong></p>
+            <p>- Collect 🟢 <strong>Networking Coffee (Green Coffee Cup)</strong>: Invincibility for 3s!</p>
+            <p>- Find 🔵 <strong>Resume Boost (Blue Briefcase)</strong>: Double next Job Op points!</p>
+            <p><strong>Avoid:</strong> (Lose Readiness/Shrink on hit)</p>
+            <p>- 🟥 <strong>Rejection Letters (Red 'X')</strong></p>
+            <p>- 🟪 <strong>Ghosting (Purple Ghost)</strong></p>
+            <p>- ⬜ <strong>AI Replacing Jobs (Silver Robot)</strong></p>
             <p>Good luck!</p>
         </div>
 
-        <button id="restartButton" class="restart-button hidden">Restart Quest</button>
+        <button id="restartButton" class="action-button restart-button hidden">Restart Quest</button>
 
         <!-- Touch Controls for Mobile -->
         <div class="controls">
@@ -327,6 +396,7 @@
         let intervalId; // To store the game loop interval
         let gameSpeed = 150; // Initial game speed in milliseconds (lower = faster)
         let jobReadiness = 0; // Renamed from score
+        const MIN_SNAKE_LENGTH = 3; // Minimum length the snake can shrink to
         let highestProgress = localStorage.getItem('millennialQuestHighScore') || 0; // Renamed from highScore
         let isGameOver = false;
         let isGameStarted = false; // To track if the game has started
@@ -344,7 +414,7 @@
         let touchStartY = 0;
         let touchEndX = 0;
         let touchEndY = 0;
-        const minSwipeDistance = 20; // Minimum distance for a swipe to register
+        const minSwipeDistance = 20; // Adjusted for better responsiveness vs. accidental triggers
 
         // Game Items
         let motivation = {}; // "Food" for motivation (coffee cup)
@@ -352,6 +422,15 @@
         let networkingCoffee = {}; // Power-up: temporary invincibility
         let resumeBoost = {}; // Power-up: doubles next job opportunity points
         let obstacles = []; // Array to hold "rejection", "ghosting", and "AI replacement" blocks
+
+        // Particle system
+        let particles = []; // Array to store active particles
+
+        // In-game floating messages (for hints)
+        let activeFloatingMessages = [];
+        const HAS_PLAYED_BEFORE_KEY = 'millennialQuestHasPlayedBefore';
+        let firstEncounteredItems = new Set(JSON.parse(localStorage.getItem('firstEncounteredItems') || '[]'));
+        let showHintsForCurrentSession = false; // Only show hints for the first game session (until restart)
 
         // Game State Flags and Timers for Power-ups/Events
         let isInvincible = false;
@@ -370,6 +449,7 @@
         const gameMessage = document.getElementById('gameMessage');
         const gameInstructions = document.getElementById('gameInstructions');
         const restartButton = document.getElementById('restartButton');
+        const instructionsToggleButton = document.getElementById('instructionsToggleButton');
         const controlButtons = document.querySelectorAll('.control-button');
 
         // --- Game Initialization and Resizing ---
@@ -406,7 +486,7 @@
             setupCanvas();
             updateHighestProgressDisplay(); // Ensure high score is displayed immediately
             displayMessage("Press arrow keys or use controls to start your quest!");
-            gameInstructions.classList.remove('hidden'); // Ensure instructions are visible
+            // Instructions are hidden by default via CSS max-height: 0
         };
         window.addEventListener('resize', setupCanvas);
 
@@ -424,6 +504,8 @@
             changingDirection = false; // Allow direction change for the next frame
             moveSnake();
             moveObstacles(); // Move obstacles if difficulty allows
+            updateParticles(); // Update particle positions and states
+            updateFloatingMessages(); // Update floating message positions and states
             drawGame();
             checkSpecialEventTrigger(); // Check if a special event should trigger
         }
@@ -433,14 +515,24 @@
          */
         function startGame() {
             if (intervalId) clearInterval(intervalId); // Clear any existing interval
-            jobReadiness = 0;
+            jobReadiness = 10; // Start with 10 Job Readiness for more forgiveness
             snake = [{ x: 10, y: 10 }];
-            direction = { x: 0, y: 0 }; // Reset direction
+            direction = { x: 0, y: 0 }; // Initial direction (not moving)
             
             // Adjust initial game speed based on device type
             gameSpeed = isMobileDevice ? 180 : 150; // Slower initial speed for mobile
 
             obstacles = []; // Clear obstacles
+            particles = []; // Clear all particles
+            activeFloatingMessages = []; // Clear all floating messages
+            
+            // Determine if hints should be shown this session
+            showHintsForCurrentSession = !localStorage.getItem(HAS_PLAYED_BEFORE_KEY);
+            if (showHintsForCurrentSession) {
+                localStorage.setItem(HAS_PLAYED_BEFORE_KEY, 'true'); // Mark as played
+            }
+
+
             isInvincible = false;
             resumeBoostActive = false;
             interviewEventActive = false;
@@ -456,7 +548,8 @@
             generateGameItems(); // Generate initial food and obstacles
             displayMessage(""); // Clear message
             restartButton.classList.add('hidden'); // Hide restart button
-            gameInstructions.classList.add('hidden'); // Hide instructions when game starts
+            gameInstructions.classList.remove('active'); // Hide instructions on game start
+            instructionsToggleButton.classList.remove('hidden'); // Show instructions toggle button
             intervalId = setInterval(gameLoop, gameSpeed);
         }
 
@@ -474,7 +567,7 @@
             const px = x * gridSize;
             const py = y * gridSize;
 
-            // Cap top (square part) - 16x16 pixels centered in 20x20 grid
+            // Cap top (square part) - 1.6em / 20 * 20 = 16px wide
             ctx.fillRect(px + 2, py + 2, 16, 16);
 
             // Tassel (small vertical line)
@@ -615,6 +708,7 @@
 
         /**
          * Clears the canvas and draws all game elements (snake, motivation, job opportunity, obstacles).
+         * Also draws active particles and floating messages.
          */
         function drawGame() {
             // Clear canvas
@@ -675,6 +769,28 @@
                     ctx.strokeRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
                 }
             }
+
+            // Draw particles
+            for (let i = 0; i < particles.length; i++) {
+                const p = particles[i];
+                ctx.save(); // Save current canvas state
+                ctx.globalAlpha = p.opacity; // Apply particle's opacity
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x * gridSize, p.y * gridSize, p.size, p.size); // Draw a square particle
+                ctx.restore(); // Restore canvas state
+            }
+
+            // Draw floating messages
+            ctx.font = `${Math.floor(gridSize * 0.5)}px 'Press Start 2P'`; // Smaller pixel font for messages
+            ctx.textAlign = 'center';
+            for (let i = 0; i < activeFloatingMessages.length; i++) {
+                const msg = activeFloatingMessages[i];
+                ctx.save();
+                ctx.globalAlpha = msg.opacity;
+                ctx.fillStyle = msg.color;
+                ctx.fillText(msg.text, msg.x * gridSize + gridSize / 2, msg.y * gridSize - 5 + msg.offsetY); // Offset above item
+                ctx.restore();
+            }
         }
 
         // --- Snake Movement and Collision ---
@@ -706,12 +822,11 @@
             if (!isInvincible && !interviewEventActive) {
                 for (let i = 0; i < obstacles.length; i++) {
                     if (head.x === obstacles[i].x && head.y === obstacles[i].y) {
-                        gameOver(obstacles[i].type); // Pass obstacle type for specific message
-                        return;
+                        handleObstacleHit(obstacles[i].type); // Handle obstacle hit without instant game over
+                        return; // Exit after handling hit, don't move the snake this frame
                     }
                 }
             }
-
 
             // Add new head to the beginning of the snake array
             snake.unshift(head);
@@ -721,7 +836,7 @@
             if (didEatMotivation) {
                 jobReadiness += 1;
                 updateJobReadinessDisplay();
-                triggerCollectEffect(motivation.x, motivation.y, '#48bb78'); // Trigger sparkle effect
+                triggerCollectEffect(motivation.x, motivation.y, '#48bb78'); // Trigger pixelated sparkle effect
                 generateMotivation(); // Generate new motivation
                 increaseSpeed();
                 spawnObstacleChance(); // Chance to spawn new obstacle
@@ -740,7 +855,7 @@
                 }
                 jobReadiness += points;
                 updateJobReadinessDisplay();
-                triggerCollectEffect(jobOpportunity.x, jobOpportunity.y, '#ecc94b'); // Trigger sparkle effect
+                triggerCollectEffect(jobOpportunity.x, jobOpportunity.y, '#ecc94b'); // Trigger pixelated sparkle effect
                 jobOpportunity = {}; // Clear job opportunity after eating
                 generateMotivation(); // Always generate a new motivation after special food
                 increaseSpeed();
@@ -783,6 +898,38 @@
         }
 
         /**
+         * Handles what happens when the snake hits an obstacle.
+         * Instead of immediate game over, it loses readiness and/or shrinks.
+         * @param {string} obstacleType - The type of obstacle hit.
+         */
+        function handleObstacleHit(obstacleType) {
+            jobReadiness -= 2; // Lose 2 points of Job Readiness
+            updateJobReadinessDisplay();
+            triggerHitEffect(); // Screen flash for being hit
+            triggerObstacleHitParticleEffect(snake[0].x, snake[0].y, obstacleType); // Trigger pixel particles
+
+            let message = "LOST READINESS! ";
+            switch(obstacleType) {
+                case 'rejection': message += "Rejection!"; break;
+                case 'ghosting': message += "Ghosted!"; break;
+                case 'ai_replacement': message += "AI Threat!"; break;
+            }
+            displayMessage(message);
+
+            // If snake is at minimum length AND job readiness is 0 or below, it's game over
+            if (snake.length <= MIN_SNAKE_LENGTH && jobReadiness <= 0) {
+                gameOver(obstacleType);
+                return;
+            }
+            // If snake is longer than minimum length, it shrinks
+            else if (snake.length > MIN_SNAKE_LENGTH) {
+                snake.pop(); // Remove one segment
+            }
+            // Otherwise, if at min length but readiness > 0, simply continue playing after losing readiness
+        }
+
+
+        /**
          * Checks if the snake's head is colliding with any of its body segments.
          * @param {object} head - The coordinates of the snake's head.
          * @returns {boolean} True if collision occurs, false otherwise.
@@ -810,8 +957,9 @@
                             // Move based on recession wave direction
                             obstacle.x += recessionWaveDirection.x;
                             obstacle.y += recessionWaveDirection.y;
-                        } else {
-                            // Random subtle movement for individual obstacles
+                        }
+                        // Individual random movement for obstacles only if no recession wave
+                        else {
                             const randMove = Math.floor(Math.random() * 4); // 0: none, 1: up, 2: down, 3: left, 4: right
                             switch (randMove) {
                                 case 1: obstacle.y = Math.max(0, obstacle.y - 1); break;
@@ -882,40 +1030,60 @@
         }
 
         /**
-         * Generates a new position for Motivation.
+         * Generates a new position for Motivation and adds a hint if first encounter.
          */
         function generateMotivation() {
             motivation = getRandomValidPosition();
+            if (showHintsForCurrentSession && !firstEncounteredItems.has('motivation')) {
+                addFloatingMessage(motivation.x, motivation.y, "COLLECT!", '#48bb78');
+                firstEncounteredItems.add('motivation');
+                localStorage.setItem('firstEncounteredItems', JSON.stringify(Array.from(firstEncounteredItems)));
+            }
         }
 
         /**
-         * Generates a new position for Job Opportunity (rarer).
+         * Generates a new position for Job Opportunity and adds a hint if first encounter.
          */
         function generateJobOpportunity() {
             if (Math.random() < 0.2) { // 20% chance to spawn a Job Opportunity
                 jobOpportunity = getRandomValidPosition();
+                if (showHintsForCurrentSession && !firstEncounteredItems.has('jobOpportunity')) {
+                    addFloatingMessage(jobOpportunity.x, jobOpportunity.y, "BONUS!", '#ecc94b');
+                    firstEncounteredItems.add('jobOpportunity');
+                    localStorage.setItem('firstEncounteredItems', JSON.stringify(Array.from(firstEncounteredItems)));
+                }
             } else {
                 jobOpportunity = {}; // Ensure it's cleared if not spawned
             }
         }
 
         /**
-         * Generates a new Networking Coffee power-up.
+         * Generates a new Networking Coffee power-up and adds a hint if first encounter.
          */
         function generateNetworkingCoffee() {
             if (Math.random() < 0.15) { // 15% chance to spawn networking coffee
                 networkingCoffee = getRandomValidPosition();
+                if (showHintsForCurrentSession && !firstEncounteredItems.has('networkingCoffee')) {
+                    addFloatingMessage(networkingCoffee.x, networkingCoffee.y, "INVINCIBLE!", '#68d391');
+                    firstEncounteredItems.add('networkingCoffee');
+                    localStorage.setItem('firstEncounteredItems', JSON.stringify(Array.from(firstEncounteredItems)));
+                }
             } else {
                 networkingCoffee = {};
             }
         }
 
         /**
-         * Generates a new Resume Boost power-up.
+         * Generates a new Resume Boost power-up and adds a hint if first encounter.
          */
         function generateResumeBoost() {
             if (Math.random() < 0.1) { // 10% chance to spawn resume boost
                 resumeBoost = getRandomValidPosition();
+                if (showHintsForCurrentSession && !firstEncounteredItems.has('resumeBoost')) {
+                    addFloatingMessage(resumeBoost.x, resumeBoost.y, "DOUBLE PTS!", '#90cdf4');
+                    firstEncounteredItems.add('resumeBoost');
+                    localStorage.setItem('firstEncounteredItems', JSON.stringify(Array.from(firstEncounteredItems)));
+                }
             } else {
                 resumeBoost = {};
             }
@@ -923,25 +1091,37 @@
 
 
         /**
-         * Generates a new obstacle block.
-         * Obstacle type depends on a random chance, favoring rejections/ghosting initially.
-         * AI replacement becomes more likely with higher scores.
+         * Generates a new obstacle block and adds a hint if first encounter.
          */
         function generateObstacle() {
             const pos = getRandomValidPosition();
             let type;
+            let hintText;
+            let hintColor;
             const rand = Math.random();
 
             // Make AI Replacement more likely as score increases
             if (jobReadiness >= 10 && rand < 0.4) { // 40% chance if score is high
                 type = 'ai_replacement';
+                hintText = "AVOID!";
+                hintColor = '#a0aec0';
             } else if (rand < 0.7) { // 70% chance for rejection (if not AI)
                 type = 'rejection';
+                hintText = "DANGER!";
+                hintColor = '#e53e3e';
             } else { // Remaining chance for ghosting
                 type = 'ghosting';
+                hintText = "WATCH OUT!";
+                hintColor = '#805ad5';
             }
 
             obstacles.push({ x: pos.x, y: pos.y, type: type, originalX: pos.x, originalY: pos.y }); // Store original pos for reset
+
+            if (showHintsForCurrentSession && !firstEncounteredItems.has(type)) {
+                addFloatingMessage(pos.x, pos.y, hintText, hintColor);
+                firstEncounteredItems.add(type);
+                localStorage.setItem('firstEncounteredItems', JSON.stringify(Array.from(firstEncounteredItems)));
+            }
         }
 
         /**
@@ -1042,8 +1222,9 @@
             }
             displayMessage(message + " Press Restart Quest.");
             restartButton.classList.remove('hidden'); // Show restart button
+            instructionsToggleButton.classList.remove('hidden'); // Show instructions toggle
             isGameStarted = false; // Mark game as not started, waiting for restart
-            gameInstructions.classList.remove('hidden'); // Show instructions again after game over
+            gameInstructions.classList.remove('active'); // Hide instructions on game over for clean restart
         }
 
         /**
@@ -1054,30 +1235,74 @@
             gameMessage.textContent = msg;
         }
 
-        // --- Animated Effects ---
+        // --- Animated Effects & Particles ---
 
         /**
-         * Triggers a brief sparkle/particle effect when an item is collected.
+         * Updates the position and state of all active particles.
+         * Removes particles that have faded out or expired.
+         */
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.opacity -= p.fade; // Fade out
+                p.life--; // Decrease life
+
+                if (p.opacity <= 0 || p.life <= 0) {
+                    particles.splice(i, 1); // Remove dead particles
+                }
+            }
+        }
+
+        /**
+         * Triggers a pixelated sparkle/particle effect when an item is collected.
          * @param {number} x - X grid coordinate of the collected item.
          * @param {number} y - Y grid coordinate of the collected item.
          * @param {string} color - Color of the effect.
          */
         function triggerCollectEffect(x, y, color) {
-            const px = x * gridSize;
-            const py = y * gridSize;
+            const numParticles = 8; // Number of particles for collect effect
+            for (let i = 0; i < numParticles; i++) {
+                particles.push({
+                    x: x + 0.5 + (Math.random() * 0.4 - 0.2), // Start slightly randomized within cell
+                    y: y + 0.5 + (Math.random() * 0.4 - 0.2),
+                    vx: (Math.random() - 0.5) * 0.1, // Small horizontal velocity
+                    vy: (Math.random() - 0.5) * 0.1, // Small vertical velocity
+                    color: color,
+                    opacity: 1,
+                    fade: 0.05, // How fast it fades
+                    life: 30, // How many frames it lives
+                    size: 2 // Pixel size
+                });
+            }
+        }
 
-            // Draw a few small "sparkle" pixels around the collected item
-            ctx.fillStyle = color;
-            ctx.fillRect(px + gridSize / 4, py + gridSize / 4, gridSize / 2, gridSize / 2);
-            ctx.fillRect(px, py, 2, 2);
-            ctx.fillRect(px + gridSize - 2, py, 2, 2);
-            ctx.fillRect(px, py + gridSize - 2, 2, 2);
-            ctx.fillRect(px + gridSize - 2, py + gridSize - 2, 2, 2);
+        /**
+         * Triggers a pixelated particle effect when an obstacle is hit.
+         * @param {number} x - X grid coordinate of the snake's head (impact point).
+         * @param {number} y - Y grid coordinate of the snake's head (impact point).
+         * @param {string} type - Type of obstacle for color variations.
+         */
+        function triggerObstacleHitParticleEffect(x, y, type) {
+            const numParticles = 10;
+            let particleColor = '#e53e3e'; // Default red for rejections
+            if (type === 'ghosting') particleColor = '#805ad5'; // Purple
+            if (type === 'ai_replacement') particleColor = '#a0aec0'; // Silver
 
-            // Clear the effect after a very short delay
-            setTimeout(() => {
-                drawGame(); // Redraw the entire game to clear the temporary sparkle
-            }, 50); // Flash for 50ms
+            for (let i = 0; i < numParticles; i++) {
+                particles.push({
+                    x: x + 0.5 + (Math.random() * 0.4 - 0.2),
+                    y: y + 0.5 + (Math.random() * 0.4 - 0.2),
+                    vx: (Math.random() - 0.5) * 0.2, // Slightly faster outward velocity
+                    vy: (Math.random() - 0.5) * 0.2,
+                    color: particleColor,
+                    opacity: 1,
+                    fade: 0.08, // Faster fade
+                    life: 20,
+                    size: 3
+                });
+            }
         }
 
         /**
@@ -1102,6 +1327,59 @@
                 gameContainer.classList.remove('shake');
             }, 200); // Shake for 200ms
         }
+
+        /**
+         * Triggers a temporary red flash overlay when an obstacle is hit (without game over).
+         */
+        function triggerHitEffect() {
+            const hitOverlay = document.createElement('div');
+            hitOverlay.classList.add('hit-flash-overlay');
+            gameContainer.appendChild(hitOverlay);
+
+            setTimeout(() => {
+                if (gameContainer.contains(hitOverlay)) {
+                    gameContainer.removeChild(hitOverlay);
+                }
+            }, 300); // Shorter duration for hit flash
+        }
+
+        // --- Floating Messages Logic ---
+
+        /**
+         * Adds a new floating text message to the screen.
+         * @param {number} x - X grid coordinate for the message.
+         * @param {number} y - Y grid coordinate for the message.
+         * @param {string} text - The message text.
+         * @param {string} color - CSS color string for the text.
+         */
+        function addFloatingMessage(x, y, text, color) {
+            activeFloatingMessages.push({
+                x: x,
+                y: y,
+                text: text,
+                color: color,
+                opacity: 1,
+                life: 60, // How many frames the message lives
+                offsetY: 0, // Initial vertical offset
+                vy: -0.05 // Upward velocity
+            });
+        }
+
+        /**
+         * Updates the state of all active floating messages (moves them, fades them).
+         */
+        function updateFloatingMessages() {
+            for (let i = activeFloatingMessages.length - 1; i >= 0; i--) {
+                const msg = activeFloatingMessages[i];
+                msg.offsetY += msg.vy; // Move message upward
+                msg.opacity -= 1 / msg.life; // Fade out over its lifespan
+
+                if (msg.opacity <= 0) {
+                    activeFloatingMessages.splice(i, 1); // Remove expired messages
+                }
+            }
+        }
+
 
         // --- Special Events Logic ---
 
@@ -1322,6 +1600,13 @@
          * Handles restart button click.
          */
         restartButton.addEventListener('click', startGame);
+
+        /**
+         * Handles instructions toggle button click.
+         */
+        instructionsToggleButton.addEventListener('click', () => {
+            gameInstructions.classList.toggle('active');
+        });
 
     </script>
 </body>
